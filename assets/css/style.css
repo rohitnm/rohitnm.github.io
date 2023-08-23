@@ -23,7 +23,7 @@ body {
   font-family: 'Open Sans', sans-serif;
   color: var(--white);
   position: relative;
-  background: transparent;
+  background: yellow;
 }
 
 body::before {
