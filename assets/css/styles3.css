@@ -22,17 +22,22 @@
   --cool-blue: #081f62;
   --gray: #fefefe;
   --dark-green: #064635;
+  --gray-shade: #b3b3b3;
   --navy-blue: #051747;
   --yellow: #ffc107;
   --light-pink: #edc7b7;
   --golden-yellow: #9e7f25;
   /* --dark-blue: #e7e9f0; */
   --dark-blue: #d7d9e2;
+  --blue-shade: #2F3C48;
+  --persian-blue: #192734;
+  --hover-blue: #1DA1F2;
+  --sec-text: #8899a6;
 }
 
 body {
   font-family: 'Open Sans', sans-serif;
-  color: var(--cool-blue);
+  color: var(--gray);   /*Opening Message Color */
   position: relative;
   background: transparent;
 }
@@ -40,7 +45,7 @@ body {
 body::before {
   content: '';
   position: fixed;
-  background: var(--gray);
+  background: var(--persian-blue); /*Background Color*/
   background-size: cover;
   left: 0;
   right: 0;
@@ -100,7 +105,7 @@ h6 {
 
 #header h1 a,
 #header h1 a:hover {
-  color: var(--navy-blue);
+  color: var(--gray); /* Color for Name */
   line-height: 1;
   display: inline-block;
 }
@@ -133,7 +138,7 @@ h6 {
   justify-content: center;
   align-items: center;
   background: rgba(255, 255, 255, 0.1);
-  color: var(--cool-blue);
+  color: var(--hover-blue);
   line-height: 1;
   margin-right: 8px;
   border-radius: 50%;
@@ -142,7 +147,7 @@ h6 {
 }
 
 #header .social-links a:hover {
-  background: var(--light-pink);
+  background: var(--gray);
 }
 
 @media (max-width: 992px) {
@@ -185,7 +190,7 @@ h6 {
 .nav-menu a {
   display: block;
   position: relative;
-  color: var(--cool-blue);
+  color: var(--sec-text);
   font-size: 19px;
   font-family: 'Poppins', sans-serif;
   font-weight: 400;
@@ -214,7 +219,7 @@ h6 {
 .nav-menu a:hover,
 .nav-menu .active > a,
 .nav-menu li:hover > a {
-  color: var(--dark-green);
+  color: var(--hover-blue);
   text-decoration: none;
 }
 
@@ -310,7 +315,7 @@ h6 {
   left: 0;
   top: 0;
   right: 0;
-  background: var(--dark-blue);
+  background: var(--blue-shade);
 }
 
 #header.header-top .social-links,
@@ -383,7 +388,7 @@ section .container {
   margin: 0 0 20px 0;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--navy-blue);
+  color: var(--gray);
   font-family: 'Poppins', sans-serif;
 }
 
@@ -392,7 +397,7 @@ section .container {
   width: 120px;
   height: 1px;
   display: inline-block;
-  background: var(--navy-blue);
+  background: var(--sec-text);
   margin: 4px 10px;
 }
 
@@ -403,7 +408,7 @@ section .container {
   font-weight: 700;
   text-transform: uppercase;
   font-family: 'Poppins', sans-serif;
-  color: var(--cool-blue);
+  color: var(--sec-text);
 }
 
 /*--------------------------------------------------------------
