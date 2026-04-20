@@ -120,7 +120,12 @@
       min-height: 340px;
       max-height: 60vh;
       overflow-y: auto;
+      scroll-behavior: smooth;
     }
+    .boot-body::-webkit-scrollbar { width: 6px; }
+    .boot-body::-webkit-scrollbar-track { background: transparent; }
+    .boot-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    .boot-body::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
     .boot-line {
       opacity: 0;
@@ -130,15 +135,16 @@
 
     .boot-line.visible { opacity: 1; }
 
-    .boot-line .prompt { color: var(--green); }
-    .boot-line .cmd { color: var(--bright); }
-    .boot-line .flag { color: var(--yellow); }
-    .boot-line .value { color: var(--cyan); }
-    .boot-line .comment { color: var(--muted); }
-    .boot-line .ok { color: var(--green); }
-    .boot-line .err { color: var(--red); }
-    .boot-line .info { color: var(--blue); }
-    .boot-line .purple { color: var(--purple); }
+    #boot-body .prompt { color: var(--green); }
+    #boot-body .cmd { color: var(--bright); }
+    #boot-body .flag { color: var(--yellow); }
+    #boot-body .value { color: var(--cyan); }
+    #boot-body .comment { color: var(--muted); }
+    #boot-body .ok { color: var(--green); }
+    #boot-body .err { color: var(--red); }
+    #boot-body .info { color: var(--blue); }
+    #boot-body .purple { color: var(--purple); }
+    #boot-body .bright { color: var(--bright); }
 
     .cursor-blink {
       display: inline-block;
@@ -634,10 +640,7 @@
 
     /* ===================== ABOUT ME ===================== */
     .about-content {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 40px;
-      align-items: start;
+      max-width: 800px;
     }
 
     .about-text {
@@ -647,44 +650,7 @@
 
     .about-text p { margin-bottom: 16px; }
 
-    .about-terminal {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .about-terminal .term-body {
-      font-size: 0.75rem;
-      line-height: 1.8;
-    }
-
-    /* ===================== INTERACTIVE TERMINAL ===================== */
-    .iterm-body {
-      padding: 16px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      line-height: 1.8;
-      max-height: 380px;
-      overflow-y: auto;
-      scroll-behavior: smooth;
-    }
-    .iterm-body::-webkit-scrollbar { width: 6px; }
-    .iterm-body::-webkit-scrollbar-track { background: transparent; }
-    .iterm-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-    .iterm-body::-webkit-scrollbar-thumb:hover { background: var(--muted); }
-
-    .iterm-line .prompt { color: var(--green); }
-    .iterm-line .cmd { color: var(--bright); }
-    .iterm-line .flag { color: var(--yellow); }
-    .iterm-line .value { color: var(--cyan); }
-    .iterm-line .comment { color: var(--muted); }
-    .iterm-line .ok { color: var(--green); }
-    .iterm-line .err { color: var(--red); }
-    .iterm-line .info { color: var(--blue); }
-    .iterm-line .purple { color: var(--purple); }
-    .iterm-line .bright { color: var(--bright); }
-
+    /* ===================== INTERACTIVE TERMINAL (inside boot terminal) ===================== */
     .iterm-output { white-space: pre-wrap; word-break: break-word; }
 
     .iterm-input-row {
@@ -703,7 +669,7 @@
       outline: none;
       color: var(--bright);
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
+      font-size: inherit;
       flex: 1;
       caret-color: var(--green);
       padding: 0;
@@ -1874,7 +1840,6 @@
       .hero-terminal { max-width: 100%; }
       .projects-grid { grid-template-columns: 1fr; }
       .education-grid { grid-template-columns: 1fr; }
-      .about-content { grid-template-columns: 1fr; }
       .achievements-strip { grid-template-columns: 1fr; }
       .skills-container { grid-template-columns: 1fr; }
       .philosophy-grid { grid-template-columns: 1fr 1fr; }
@@ -1894,7 +1859,6 @@
       .hero-stats { gap: 16px; }
       .hero-stat .number { font-size: 1.4rem; }
       .term-body { padding: 14px; font-size: 0.7rem; }
-      .about-terminal .term-body { font-size: 0.68rem; }
       .back-to-top { bottom: 20px; right: 20px; width: 38px; height: 38px; font-size: 1rem; }
       .footer-links { justify-content: center; }
     }
@@ -1922,10 +1886,11 @@
       <div class="boot-dot red"></div>
       <div class="boot-dot yellow"></div>
       <div class="boot-dot green"></div>
-      <span>rohit@portfolio ~ /init</span>
+      <span id="iterm-title">rohit@portfolio ~ /init</span>
     </div>
     <div class="boot-body" id="boot-body"></div>
-    <button class="skip-btn" id="skip-btn">SKIP &rarr; ENTER</button>
+    <div class="iterm-hint" id="iterm-hint" style="display:none">Type <span style="color:var(--green)">help</span> for commands &middot; &uarr;/&darr; for history &middot; <span style="color:var(--green)">cat portfolio</span> to view site</div>
+    <button class="skip-btn" id="skip-btn">View Full Portfolio &rarr;</button>
   </div>
 </div>
 
@@ -1942,6 +1907,7 @@
   <nav>
     <a href="#" class="nav-logo"><span class="slash">~/</span>rohit.mehta</a>
     <ul class="nav-links" id="nav-links">
+      <li><a href="#" id="nav-terminal" onclick="showTerminal();return false;">terminal</a></li>
       <li><a href="#about" data-section="about">about</a></li>
       <li><a href="#experience" data-section="experience">experience</a></li>
       <li><a href="#skills" data-section="skills">skills</a></li>
@@ -2082,18 +2048,6 @@
         <p>I'm an embedded software engineer who's drawn to the challenge of making hardware do exactly what it needs to &mdash; reliably, efficiently, and at the closest level to the metal. My work spans medical bed firmware at Baxter, Wi-Fi failure automation at Itron, and debugging Class III medical devices at Third Pole Therapeutics.</p>
         <p>I earned my M.S. in Computer Engineering from Virginia Tech, where I competed in MITRE's eCTF and got deep into secure boot, compiler optimization, and real-time systems. Before that, I studied Electronics Engineering at K.J. Somaiya in Mumbai, where I first caught the embedded bug building robots and learning the 8051.</p>
         <p>When I'm not writing firmware or staring at logic analyzer captures, I enjoy exploring new microcontroller platforms, contributing to open-source developer tools (like my SVD Register Tuner extension), and finding ways to make engineering workflows faster with automation and AI.</p>
-      </div>
-      <div class="about-terminal" id="about-terminal">
-        <div class="term-titlebar">
-          <div class="term-dot red"></div>
-          <div class="term-dot yellow"></div>
-          <div class="term-dot green"></div>
-          <span class="title" id="iterm-title">rohit@dev ~ $</span>
-        </div>
-        <div class="iterm-body" id="iterm-body">
-          <!-- initial output filled by JS -->
-        </div>
-        <div class="iterm-hint">Type <span style="color:var(--green)">help</span> for commands &middot; &uarr;/&darr; for history</div>
       </div>
     </div>
   </section>
@@ -2534,38 +2488,38 @@
         { text: ' --engineer', cls: 'flag' },
         { text: ' rohit.mehta', cls: 'value' }
       ], delay: 0 },
-    { html: '<span class="comment">[    0.000] Initializing embedded developer portfolio...</span>', delay: 350 },
-    { html: '<span class="comment">[    0.012] Loading firmware image from flash @ 0x08000000</span>', delay: 280 },
-    { html: '<span class="ok">  \u2713</span> <span class="cmd">Core: ARM Cortex \u2014 C, C++, Python, Assembly</span>', delay: 300 },
-    { html: '<span class="ok">  \u2713</span> <span class="cmd">RTOS: FreeRTOS, Yocto Linux, Bare Metal</span>', delay: 260 },
-    { html: '<span class="ok">  \u2713</span> <span class="cmd">Hardware: STM32, MSP432, MAX78000, Renesas SK-S7G2</span>', delay: 260 },
-    { html: '<span class="ok">  \u2713</span> <span class="cmd">Protocols: UART, SPI, I2C, CAN, JTAG</span>', delay: 240 },
-    { html: '<span class="comment">[    0.847] Mounting experience sectors...</span>', delay: 350 },
-    { html: '<span class="info">  \u2192 Baxter International</span> <span class="comment">// Medical Bed Firmware</span>', delay: 300 },
-    { html: '<span class="info">  \u2192 Itron, Inc.</span> <span class="comment">// NIC Power Cycling & Wi-Fi Debug</span>', delay: 260 },
-    { html: '<span class="info">  \u2192 Third Pole Therapeutics</span> <span class="comment">// Class III Medical Device</span>', delay: 260 },
-    { html: '<span class="comment">[    1.523] Linking project modules...</span>', delay: 300 },
-    { html: '<span class="purple">  \u25C6 SVD Register Tuner</span> <span class="comment">// VS Code Marketplace</span>', delay: 240 },
-    { html: '<span class="purple">  \u25C6 MITRE eCTF 2024</span> <span class="comment">// 20th Global \u2014 Secure Boot Arch</span>', delay: 240 },
-    { html: '<span class="purple">  \u25C6 Lazy Code Motion</span> <span class="comment">// 30% fewer instructions</span>', delay: 240 },
-    { html: '<span class="comment">[    2.100] Verifying education checksums...</span>', delay: 300 },
-    { html: '<span class="ok">  \u2713</span> <span class="cmd">M.S. Computer Engineering \u2014 Virginia Tech</span> <span class="value">[3.75]</span>', delay: 260 },
-    { html: '<span class="ok">  \u2713</span> <span class="cmd">B.E. Electronics \u2014 University of Mumbai</span> <span class="value">[3.20]</span>', delay: 260 },
-    { html: '', delay: 180 },
-    { html: '<span class="ok">[    2.800] \u2713 All systems nominal. Portfolio ready.</span>', delay: 350 },
+    { html: '<span class="comment">[    0.000] Initializing embedded developer portfolio...</span>', delay: 60 },
+    { html: '<span class="comment">[    0.012] Loading firmware image from flash @ 0x08000000</span>', delay: 50 },
+    { html: '<span class="ok">  \u2713</span> <span class="cmd">Core: ARM Cortex \u2014 C, C++, Python, Assembly</span>', delay: 40 },
+    { html: '<span class="ok">  \u2713</span> <span class="cmd">RTOS: FreeRTOS, Yocto Linux, Bare Metal</span>', delay: 40 },
+    { html: '<span class="ok">  \u2713</span> <span class="cmd">Hardware: STM32, MSP432, MAX78000, Renesas SK-S7G2</span>', delay: 40 },
+    { html: '<span class="ok">  \u2713</span> <span class="cmd">Protocols: UART, SPI, I2C, CAN, JTAG</span>', delay: 40 },
+    { html: '<span class="comment">[    0.847] Mounting experience sectors...</span>', delay: 60 },
+    { html: '<span class="info">  \u2192 Baxter International</span> <span class="comment">// Medical Bed Firmware</span>', delay: 40 },
+    { html: '<span class="info">  \u2192 Itron, Inc.</span> <span class="comment">// NIC Power Cycling & Wi-Fi Debug</span>', delay: 40 },
+    { html: '<span class="info">  \u2192 Third Pole Therapeutics</span> <span class="comment">// Class III Medical Device</span>', delay: 40 },
+    { html: '<span class="comment">[    1.523] Linking project modules...</span>', delay: 60 },
+    { html: '<span class="purple">  \u25C6 SVD Register Tuner</span> <span class="comment">// VS Code Marketplace</span>', delay: 40 },
+    { html: '<span class="purple">  \u25C6 MITRE eCTF 2024</span> <span class="comment">// 20th Global \u2014 Secure Boot Arch</span>', delay: 40 },
+    { html: '<span class="purple">  \u25C6 Lazy Code Motion</span> <span class="comment">// 30% fewer instructions</span>', delay: 40 },
+    { html: '<span class="comment">[    2.100] Verifying education checksums...</span>', delay: 60 },
+    { html: '<span class="ok">  \u2713</span> <span class="cmd">M.S. Computer Engineering \u2014 Virginia Tech</span> <span class="value">[3.75]</span>', delay: 40 },
+    { html: '<span class="ok">  \u2713</span> <span class="cmd">B.E. Electronics \u2014 University of Mumbai</span> <span class="value">[3.20]</span>', delay: 40 },
+    { html: '', delay: 30 },
+    { html: '<span class="ok">[    2.800] \u2713 All systems nominal. Portfolio ready.</span>', delay: 60 },
     { text: '$ launch --target portfolio', type: 'typed',
       segments: [
         { text: '$ ', cls: 'prompt' },
         { text: 'launch', cls: 'cmd' },
         { text: ' --target', cls: 'flag' },
         { text: ' portfolio', cls: 'value' }
-      ], delay: 400, final: true },
+      ], delay: 80, final: true },
   ];
 
   let bootIndex = 0;
   let bootTimeout;
   let booted = false;
-  const CHAR_SPEED = 28; // ms per character for typed lines
+  const CHAR_SPEED = 12; // ms per character for typed lines
 
   function typeSegments(div, segments, onDone) {
     let segIdx = 0, charIdx = 0;
@@ -2595,7 +2549,7 @@
   function runBoot() {
     const body = document.getElementById('boot-body');
     if (bootIndex >= bootLines.length) {
-      setTimeout(endBoot, 700);
+      setTimeout(endBoot, 200);
       return;
     }
     const line = bootLines[bootIndex];
@@ -2613,7 +2567,7 @@
           const cur = document.createElement('span');
           cur.className = 'cursor-blink';
           div.appendChild(cur);
-          setTimeout(endBoot, 700);
+          setTimeout(endBoot, 200);
         } else {
           bootTimeout = setTimeout(runBoot, line.delay);
         }
@@ -2628,18 +2582,42 @@
     if (booted) return;
     booted = true;
     clearTimeout(bootTimeout);
+    // Remove blinking cursor from boot animation
+    var cursor = document.querySelector('.cursor-blink');
+    if (cursor) cursor.remove();
+    // Update titlebar to interactive prompt
+    document.getElementById('iterm-title').textContent = 'rohit@dev ~ $';
+    // Show hint bar
+    document.getElementById('iterm-hint').style.display = '';
+    // Initialize interactive terminal in the same boot-body
+    initInteractiveTerminal();
+  }
+
+  function viewPortfolio() {
+    if (!booted) endBoot();
     document.getElementById('boot-screen').classList.add('hidden');
     document.getElementById('main-site').classList.add('visible');
   }
 
-  // Skip button + keyboard
-  document.getElementById('skip-btn').addEventListener('click', endBoot);
+  function showTerminal() {
+    if (!booted) endBoot();
+    document.getElementById('main-site').classList.remove('visible');
+    document.getElementById('boot-screen').classList.remove('hidden');
+    var inp = document.getElementById('iterm-input');
+    if (inp) inp.focus();
+    window.scrollTo(0, 0);
+  }
+
+  // "View Full Portfolio" button always jumps to portfolio
+  document.getElementById('skip-btn').addEventListener('click', viewPortfolio);
+  // Keyboard: Enter = skip to interactive terminal, Escape = skip to portfolio
   document.addEventListener('keydown', e => {
-    if (!booted && (e.key === 'Enter' || e.key === 'Escape')) endBoot();
+    if (!booted && e.key === 'Enter') endBoot();
+    else if (!booted && e.key === 'Escape') viewPortfolio();
   });
 
   // Start boot sequence
-  setTimeout(runBoot, 500);
+  setTimeout(runBoot, 150);
 
   /* ===================== MOBILE NAV TOGGLE ===================== */
   document.getElementById('nav-toggle').addEventListener('click', () => {
@@ -2889,8 +2867,8 @@
   });
 
   /* ===================== INTERACTIVE TERMINAL ===================== */
-  (function() {
-    var body = document.getElementById('iterm-body');
+  function initInteractiveTerminal() {
+    var body = document.getElementById('boot-body');
     var titleEl = document.getElementById('iterm-title');
     if (!body) return;
 
@@ -3006,6 +2984,14 @@
       },
       'clear': function() { return '__CLEAR__'; },
       'sudo-i': function() { return '__SUDO_I__'; },
+      'cat-portfolio': function() {
+        setTimeout(viewPortfolio, 800);
+        return span('ok', '\u2713 Opening full portfolio view...');
+      },
+      'exit': function() {
+        setTimeout(viewPortfolio, 800);
+        return span('comment', 'logout') + '\n' + span('comment', 'Connection to rohit.dev closed.');
+      },
     };
 
     // Convert {color}text{/} tags in output strings to <span> HTML
@@ -3192,11 +3178,11 @@
       inputEl.focus();
     }
 
-    // ---- Initialize: show status + prompt ----
-    addOutput(commands['status']());
-    addOutput(''); // spacer
-    addOutput(span('comment', '// Interactive terminal \u2014 type ') + span('ok', 'help') + span('comment', ' to explore'));
+    // ---- Initialize: transition message + prompt ----
+    addOutput('');
+    addOutput(span('ok', '\u2713 Portfolio loaded.') + ' ' + span('comment', 'Type ') + span('ok', 'help') + span('comment', ' to explore, or ') + span('bright', 'cat portfolio') + span('comment', ' to view full site.'));
     var firstInput = createInputRow();
+    firstInput.focus();
 
     // Focus when clicking anywhere in terminal body
     body.addEventListener('click', function(e) {
@@ -3205,7 +3191,7 @@
         if (inp) inp.focus();
       }
     });
-  })();
+  }
 </script>
 
 </body>

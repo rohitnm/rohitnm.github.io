@@ -159,9 +159,15 @@ var TERMINAL_COMMANDS = [
   },
 
   {
+    name: 'cat portfolio',
+    desc: 'view full portfolio page',
+    handler: 'cat-portfolio',
+  },
+
+  {
     name: 'exit',
-    desc: 'close terminal',
-    output: '{comment}logout{/}\n{comment}Connection to rohit.dev closed.{/}',
+    desc: 'close terminal & view portfolio',
+    handler: 'exit',
   },
 
   // ======================== ALIASES & SHORTCUTS ========================
