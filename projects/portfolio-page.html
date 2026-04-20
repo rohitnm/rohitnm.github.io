@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SVD Register Tuner — Rohit Mehta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Base ────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #0a0e14;
+  --card: #0f1419;
+  --elevated: #141920;
+  --green: #3ddc84;
+  --yellow: #e8b931;
+  --red: #f05454;
+  --blue: #5dadec;
+  --purple: #a78bfa;
+  --cyan: #56d4c8;
+  --border: #1e2632;
+  --muted: #5c6775;
+  --body: #c5cdd8;
+  --bright: #e6ecf2;
+  --glow: rgba(61, 220, 132, 0.08);
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-body: 'Inter', sans-serif;
+}
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--body);
+  font-family: var(--font-body);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--green); text-decoration: none; }
+a:hover { text-decoration: underline; }
+::selection { background: rgba(61,220,132,0.2); color: var(--bright); }
+
+/* ── Hex Gutter ──────────────────────────────────── */
+.hex-gutter {
+  position: fixed;
+  left: 12px;
+  top: 80px;
+  bottom: 0;
+  width: 90px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgba(61,220,132,0.12);
+  line-height: 2.4;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ── Nav ─────────────────────────────────────────── */
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(10,14,20,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+.nav-logo {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--bright);
+}
+.nav-links { display: flex; gap: 24px; }
+.nav-links a {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--bright); text-decoration: none; }
+.nav-github {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bright);
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 14px;
+  transition: border-color 0.2s;
+  margin-left: auto;
+}
+.nav-github:hover { border-color: var(--green); text-decoration: none; }
+
+/* ── Container ───────────────────────────────────── */
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ── Sections ────────────────────────────────────── */
+section { padding: 80px 0; }
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 8px;
+}
+.section-label::before { content: '// '; color: var(--muted); }
+section h2 {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--bright);
+  margin-bottom: 40px;
+  line-height: 1.3;
+}
+
+/* ── Hero ────────────────────────────────────────── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 56px;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--glow);
+  border: 1px solid rgba(61,220,132,0.15);
+  border-radius: 100px;
+  padding: 6px 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--green);
+  margin-bottom: 24px;
+  margin-top: 24px;
+  width: fit-content;
+}
+.hero-badge .pulse {
+  width: 8px; height: 8px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(61,220,132,0.4); }
+  50% { opacity: 0.8; box-shadow: 0 0 0 6px rgba(61,220,132,0); }
+}
+.hero h1 {
+  font-family: var(--font-mono);
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 700;
+  color: var(--bright);
+  line-height: 1.15;
+  margin-bottom: 16px;
+}
+.hero h1 .accent { color: var(--green); }
+.hero-subtitle {
+  font-size: 18px;
+  color: var(--muted);
+  max-width: 600px;
+  margin-bottom: 32px;
+  line-height: 1.6;
+}
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--green);
+  color: var(--bg);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 22px;
+  border-radius: 6px;
+  transition: opacity 0.2s;
+}
+.btn-primary:hover { opacity: 0.9; text-decoration: none; }
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--elevated);
+  color: var(--bright);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 22px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  transition: border-color 0.2s;
+}
+.btn-secondary:hover { border-color: var(--green); text-decoration: none; }
+
+/* ── Hero Terminal ────────────────────────────────── */
+.hero-terminal {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 40px;
+  max-width: 700px;
+}
+.terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--elevated);
+  border-bottom: 1px solid var(--border);
+}
+.terminal-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+}
+.terminal-dot.red { background: var(--red); }
+.terminal-dot.yellow { background: var(--yellow); }
+.terminal-dot.green { background: #27c93f; }
+.terminal-title {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+.terminal-body {
+  padding: 20px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.9;
+  overflow-x: auto;
+}
+.terminal-body .prompt { color: var(--green); }
+.terminal-body .flag { color: var(--yellow); }
+.terminal-body .val { color: var(--cyan); }
+.terminal-body .comment { color: var(--muted); }
+.terminal-body .str { color: var(--green); }
+.terminal-body .num { color: var(--blue); }
+.terminal-body .err { color: var(--red); }
+.terminal-body .pur { color: var(--purple); }
+
+/* ── Hero Stats ──────────────────────────────────── */
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+  max-width: 700px;
+}
+.hero-stat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+.hero-stat .num {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--green);
+  display: block;
+}
+.hero-stat .label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* ── Problem Cards ───────────────────────────────── */
+.problem-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.problem-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  transition: transform 0.2s, border-color 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.problem-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--red);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.problem-card:hover { transform: translateY(-2px); }
+.problem-card:hover::before { opacity: 1; }
+.problem-card .icon {
+  font-size: 24px;
+  margin-bottom: 12px;
+  display: block;
+}
+.problem-card h3 {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bright);
+  margin-bottom: 8px;
+}
+.problem-card p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* ── Feature Cards ───────────────────────────────── */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.feature-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  transition: transform 0.2s, border-color 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--green);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.feature-card:hover { transform: translateY(-2px); }
+.feature-card:hover::before { opacity: 1; }
+.feature-card .icon {
+  width: 40px; height: 40px;
+  background: var(--glow);
+  border: 1px solid rgba(61,220,132,0.12);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+.feature-card h3 {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bright);
+  margin-bottom: 8px;
+}
+.feature-card p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* ── Architecture ────────────────────────────────── */
+.arch-pipeline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-bottom: 40px;
+  justify-content: center;
+}
+.arch-stage {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  text-align: center;
+  min-width: 130px;
+}
+.arch-stage .stage-name {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green);
+  margin-bottom: 4px;
+}
+.arch-stage .stage-detail {
+  font-size: 11px;
+  color: var(--muted);
+}
+.arch-arrow {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--muted);
+  padding: 0 8px;
+}
+.arch-module-tree {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.9;
+  white-space: pre;
+  overflow-x: auto;
+}
+.arch-module-tree .dir { color: var(--blue); }
+.arch-module-tree .file { color: var(--body); }
+.arch-module-tree .desc { color: var(--muted); }
+.arch-module-tree .lines { color: var(--green); }
+
+/* ── Demo Blocks ─────────────────────────────────── */
+.demo-block {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.demo-block .terminal-bar { background: var(--elevated); }
+.demo-block .terminal-body { font-size: 12.5px; line-height: 1.85; }
+.demo-label {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bright);
+  margin-bottom: 12px;
+}
+
+/* ── Deep Dive Cards ─────────────────────────────── */
+.deep-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 28px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.deep-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--yellow);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.deep-card:hover::before { opacity: 1; }
+.deep-card h3 {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--bright);
+  margin-bottom: 12px;
+}
+.deep-card .challenge {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+.deep-card .solution-divider {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.deep-card .solution {
+  font-size: 13px;
+  color: var(--body);
+  line-height: 1.6;
+}
+.deep-card code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--elevated);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--cyan);
+}
+
+/* ── Metrics Bar ─────────────────────────────────── */
+.metrics-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.metric {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+}
+.metric .num {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--green);
+  display: block;
+}
+.metric .label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.test-layers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+.test-layer {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+}
+.test-layer h4 {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bright);
+  margin-bottom: 8px;
+}
+.test-layer p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.test-layer .count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--green);
+  margin-top: 8px;
+}
+
+/* ── Stack Grid ──────────────────────────────────── */
+.stack-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.stack-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+.stack-icon {
+  width: 40px; height: 40px;
+  background: var(--glow);
+  border: 1px solid rgba(61,220,132,0.12);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.stack-info .stack-name {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bright);
+}
+.stack-info .stack-role {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ── Motivation ──────────────────────────────────── */
+.motivation-text {
+  font-size: 16px;
+  color: var(--body);
+  line-height: 1.8;
+  max-width: 700px;
+}
+.motivation-text em {
+  color: var(--green);
+  font-style: normal;
+  font-weight: 500;
+}
+
+/* ── Roadmap ─────────────────────────────────────── */
+.roadmap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+.roadmap-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.roadmap-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--purple);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.roadmap-card:hover::before { opacity: 1; }
+.roadmap-card h3 {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bright);
+  margin-bottom: 8px;
+}
+.roadmap-card p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.roadmap-card .tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+.tag-planned { background: rgba(93,173,236,0.1); color: var(--blue); border: 1px solid rgba(93,173,236,0.2); }
+.tag-exploring { background: rgba(167,139,250,0.1); color: var(--purple); border: 1px solid rgba(167,139,250,0.2); }
+
+/* ── Footer ──────────────────────────────────────── */
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 40px 0;
+  text-align: center;
+}
+.footer-name {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--green);
+  margin-bottom: 8px;
+}
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 12px;
+}
+.footer-links a {
+  font-size: 13px;
+  color: var(--muted);
+}
+.footer-links a:hover { color: var(--bright); }
+.footer-copy {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ── Fade In ─────────────────────────────────────── */
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Marketplace Badge ───────────────────────────── */
+.marketplace-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(61,220,132,0.08);
+  border: 1px solid rgba(61,220,132,0.18);
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--green);
+  margin-top: 12px;
+}
+.marketplace-badge:hover { text-decoration: none; background: rgba(61,220,132,0.14); }
+
+/* ── AI Note ──────────────────────────────────────── */
+.ai-note {
+  font-family: var(--font-mono);
+  font-size: inherit;
+  background: rgba(167,139,250,0.1);
+  border: 1px solid rgba(167,139,250,0.2);
+  color: var(--purple);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* ── Responsive ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .hex-gutter { display: none; }
+  .nav { padding: 0 16px; }
+  .nav-links { display: none; }
+  section { padding: 48px 0; }
+  section h2 { font-size: 22px; }
+  .arch-pipeline { flex-direction: column; }
+  .arch-arrow { transform: rotate(90deg); padding: 4px 0; }
+  .hero-actions { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<!-- Hex Gutter -->
+<div class="hex-gutter" id="hex-gutter"></div>
+
+<!-- Nav -->
+<nav class="nav">
+  <a href="#" class="nav-logo">svd-register-<span style="color:var(--green)">tuner</span></a>
+  <div class="nav-links">
+    <a href="#problem">Problem</a>
+    <a href="#features">Features</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#demos">Demos</a>
+    <a href="#deep-dives">Deep Dives</a>
+    <a href="#testing">Testing</a>
+    <a href="#stack">Stack</a>
+  </div>
+  <a href="https://github.com/TODO/svd-register-tuner" target="_blank" class="nav-github">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    Source
+  </a>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge"><span class="pulse"></span> Published on VS Code Marketplace</div>
+    <h1>SVD Register<br><span class="accent">Tuner</span></h1>
+    <p class="hero-subtitle">
+      Interactive register bit-field viewer and C code generator for embedded firmware development. Stop cross-referencing thousand-page datasheets — see every bit, toggle values, copy code.
+    </p>
+    <div class="hero-actions">
+      <a href="https://marketplace.visualstudio.com/items?itemName=TODO" target="_blank" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M14.25 1H1.75L0 3.5v10.75A.75.75 0 00.75 15h14.5a.75.75 0 00.75-.75V3.5L14.25 1zM8 12L2.5 7h3.25V4h4.5v3H13.5L8 12z"/></svg>
+        Install Extension
+      </a>
+      <a href="https://github.com/TODO/svd-register-tuner" target="_blank" class="btn-secondary">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        View Source
+      </a>
+    </div>
+
+    <div class="hero-stats">
+      <div class="hero-stat"><span class="num">3,500+</span><span class="label">Lines of TypeScript</span></div>
+      <div class="hero-stat"><span class="num">96</span><span class="label">Unit Tests</span></div>
+      <div class="hero-stat"><span class="num">5,979</span><span class="label">Fields Parsed</span></div>
+      <div class="hero-stat"><span class="num">13</span><span class="label">Source Modules</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- Problem -->
+<section id="problem">
+  <div class="container fade-in">
+    <div class="section-label">The Problem</div>
+    <h2>Why embedded register programming is painful</h2>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <span class="icon">📄</span>
+        <h3>Datasheet Gymnastics</h3>
+        <p>MCU reference manuals run thousands of pages. Finding a single register's bit layout means searching, scrolling, and cross-referencing tables — every single time, for every register.</p>
+      </div>
+      <div class="problem-card">
+        <span class="icon">🧮</span>
+        <h3>Manual Bit Counting</h3>
+        <p>Fields aren't always nicely aligned. You're counting bits, computing masks like <code style="font-family:var(--font-mono);font-size:12px;background:var(--elevated);padding:2px 4px;border-radius:3px;color:var(--cyan)">(0x3 &lt;&lt; 10)</code>, hoping you didn't off-by-one the shift.</p>
+      </div>
+      <div class="problem-card">
+        <span class="icon">🔄</span>
+        <h3>Context Switching</h3>
+        <p>Editor → PDF → editor → PDF → editor. Every register access breaks your flow. The context switch alone costs minutes per register interaction.</p>
+      </div>
+      <div class="problem-card">
+        <span class="icon">🐛</span>
+        <h3>Silent Errors</h3>
+        <p>Write to a read-only field? Mask the wrong bits? Forget to preserve adjacent fields with RMW? The compiler won't catch it. The hardware just misbehaves.</p>
+      </div>
+      <div class="problem-card">
+        <span class="icon">🔍</span>
+        <h3>Raw Hex in Debug Dumps</h3>
+        <p>Fault dump says <code style="font-family:var(--font-mono);font-size:12px;background:var(--elevated);padding:2px 4px;border-radius:3px;color:var(--cyan)">0x40021004</code>. Which peripheral? Which register? What do the bits mean? Now decode 20 of those under pressure during a production issue.</p>
+      </div>
+      <div class="problem-card">
+        <span class="icon">🧑‍💻</span>
+        <h3>Onboarding Time Sink</h3>
+        <p>New engineer joins the team, first task: configure SPI. They spend days reading datasheets and asking seniors — mistakes a visual tool would prevent in minutes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features">
+  <div class="container fade-in">
+    <div class="section-label">Features</div>
+    <h2>Everything in the sidebar, nothing in the datasheet</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="icon">🎯</div>
+        <h3>Cursor-Driven Detection</h3>
+        <p>Move your cursor to <code style="font-family:var(--font-mono);font-size:12px;background:var(--elevated);padding:2px 4px;border-radius:3px;color:var(--cyan)">GPIOA-&gt;MODER</code> and the HUD resolves it instantly. Supports arrow syntax, underscore style, and raw address literals.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🔲</div>
+        <h3>Interactive Bit Grid</h3>
+        <p>Visual 32/16/8-bit grid color-coded by field. Click any bit to toggle. Multi-bit fields use XOR toggling. Read-only bits are clearly marked.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">📝</div>
+        <h3>Smart Field Editors</h3>
+        <p>Checkboxes for 1-bit flags, dropdown menus with actual enum names (Input/Output/Alternate/Analog), number inputs for multi-bit values.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">⚡</div>
+        <h3>4 Code Styles</h3>
+        <p>Generate raw writes, read-modify-write, CMSIS macros, or fully commented RMW. One-click copy or insert at cursor position.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🌳</div>
+        <h3>Register Browser</h3>
+        <p>Collapsible peripheral tree with real-time search. Browse all 955 registers without leaving the editor. Click any register to view its fields.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🔍</div>
+        <h3>Auto-Detection</h3>
+        <p>Finds your target device from platformio.ini, CubeMX .ioc, Makefile defines, CMakeLists.txt, or any SVD file in the workspace. Zero configuration.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Architecture -->
+<section id="architecture">
+  <div class="container fade-in">
+    <div class="section-label">Architecture</div>
+    <h2>From cursor to code in &lt;300ms</h2>
+
+    <div class="arch-pipeline">
+      <div class="arch-stage">
+        <div class="stage-name">Cursor Event</div>
+        <div class="stage-detail">Debounced 250ms</div>
+      </div>
+      <span class="arch-arrow">→</span>
+      <div class="arch-stage">
+        <div class="stage-name">Token Extract</div>
+        <div class="stage-detail">Regex patterns</div>
+      </div>
+      <span class="arch-arrow">→</span>
+      <div class="arch-stage">
+        <div class="stage-name">Symbol Resolve</div>
+        <div class="stage-detail">3 strategies</div>
+      </div>
+      <span class="arch-arrow">→</span>
+      <div class="arch-stage">
+        <div class="stage-name">Model Lookup</div>
+        <div class="stage-detail">Name + address index</div>
+      </div>
+      <span class="arch-arrow">→</span>
+      <div class="arch-stage">
+        <div class="stage-name">HUD Render</div>
+        <div class="stage-detail">Webview update</div>
+      </div>
+    </div>
+
+    <div class="arch-module-tree">
+<span class="dir">src/</span>
+├── <span class="file">extension.ts</span>         <span class="desc">— activation, service wiring, 9 commands</span> <span class="lines">~175 lines</span>
+├── <span class="file">svdParser.ts</span>          <span class="desc">— CMSIS-SVD XML → DeviceModel, 3-phase parse</span> <span class="lines">~550 lines</span>
+├── <span class="file">hudPanel.ts</span>           <span class="desc">— WebviewViewProvider, state machine, inline UI</span> <span class="lines">~700 lines</span>
+├── <span class="file">codeGenerator.ts</span>      <span class="desc">— 4 C code output styles</span> <span class="lines">~270 lines</span>
+├── <span class="file">cursorTracker.ts</span>      <span class="desc">— debounced cursor events</span> <span class="lines">~80 lines</span>
+├── <span class="file">tokenExtractor.ts</span>     <span class="desc">— regex-based register token extraction</span> <span class="lines">~60 lines</span>
+├── <span class="file">symbolResolver.ts</span>     <span class="desc">— 3 resolution strategies + disambiguation cache</span> <span class="lines">~190 lines</span>
+├── <span class="file">targetDetector.ts</span>     <span class="desc">— 6 detection sources (PIO, CubeMX, Make, CMake...)</span> <span class="lines">~240 lines</span>
+├── <span class="file">metadataProvider.ts</span>   <span class="desc">— central query API</span> <span class="lines">~95 lines</span>
+├── <span class="file">cacheManager.ts</span>       <span class="desc">— SHA-256 disk cache with eviction</span> <span class="lines">~170 lines</span>
+├── <span class="file">types.ts</span>              <span class="desc">— full type system, 30+ interfaces</span> <span class="lines">~240 lines</span>
+└── <span class="file">constants.ts</span>          <span class="desc">— schema version, access map</span>
+    </div>
+  </div>
+</section>
+
+<!-- Demos -->
+<section id="demos">
+  <div class="container fade-in">
+    <div class="section-label">Demo</div>
+    <h2>Real output from STM32F407 SVD</h2>
+
+    <div class="demo-label">Code Generation — Read-Modify-Write Style</div>
+    <div class="demo-block">
+      <div class="terminal-bar">
+        <span class="terminal-dot red"></span>
+        <span class="terminal-dot yellow"></span>
+        <span class="terminal-dot green"></span>
+        <span class="terminal-title">Generated Code — GPIOA→MODER</span>
+      </div>
+      <div class="terminal-body">
+<span class="comment">// GPIOA->MODER @ 0x40020000</span>
+<span class="val">uint32_t</span> reg = <span class="val">GPIOA</span>-><span class="flag">MODER</span>;
+reg &amp;= ~(<span class="num">0x3</span> &lt;&lt; <span class="num">10</span>);  <span class="comment">// Clear MODER5[11:10]</span>
+reg |=  (<span class="num">0x1</span> &lt;&lt; <span class="num">10</span>);  <span class="comment">// Set MODER5 = Output (0x1)</span>
+<span class="val">GPIOA</span>-><span class="flag">MODER</span> = reg;
+      </div>
+    </div>
+
+    <div class="demo-label">SVD Parsing — Full Device Model</div>
+    <div class="demo-block">
+      <div class="terminal-bar">
+        <span class="terminal-dot red"></span>
+        <span class="terminal-dot yellow"></span>
+        <span class="terminal-dot green"></span>
+        <span class="terminal-title">Validation Output</span>
+      </div>
+      <div class="terminal-body">
+<span class="prompt">$</span> <span class="flag">tsx</span> validate-svd.ts stm32f407.svd
+
+<span class="str">Device:</span>         STM32F407
+<span class="str">Peripherals:</span>    <span class="num">76</span>
+<span class="str">Registers:</span>      <span class="num">955</span>
+<span class="str">Fields:</span>         <span class="num">5,979</span>
+<span class="str">With Enums:</span>     <span class="num">3,877</span> <span class="comment">(incl. 691 propagated)</span>
+<span class="str">Zero-field regs:</span> <span class="num">0</span>  <span class="val">✓</span>
+<span class="str">Bit overlaps:</span>   <span class="num">0</span>  <span class="val">✓</span>
+      </div>
+    </div>
+
+    <div class="demo-label">Test Suite — All Passing</div>
+    <div class="demo-block">
+      <div class="terminal-bar">
+        <span class="terminal-dot red"></span>
+        <span class="terminal-dot yellow"></span>
+        <span class="terminal-dot green"></span>
+        <span class="terminal-title">Terminal — npm test</span>
+      </div>
+      <div class="terminal-body">
+<span class="prompt">$</span> <span class="flag">npm</span> test
+
+ <span class="val">✓</span> test/unit/svdParser.test.ts         <span class="comment">(45 tests)</span>
+ <span class="val">✓</span> test/unit/cacheManager.test.ts      <span class="comment">(9 tests)</span>
+ <span class="val">✓</span> test/unit/cursorTracker.test.ts     <span class="comment">(13 tests)</span>
+ <span class="val">✓</span> test/unit/symbolResolver.test.ts    <span class="comment">(12 tests)</span>
+ <span class="val">✓</span> test/unit/codeGenerator.test.ts     <span class="comment">(17 tests)</span>
+
+ Test Files  <span class="num">5</span> passed (<span class="num">5</span>)
+      Tests  <span class="str">96 passed</span> (<span class="num">96</span>)
+   Duration  <span class="num">480ms</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Deep Dives -->
+<section id="deep-dives">
+  <div class="container fade-in">
+    <div class="section-label">Technical Deep Dives</div>
+    <h2>The hardest problems I solved</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:28px;max-width:700px;">
+      I'm an embedded engineer — C and register maps are my comfort zone, not TypeScript and CSS. The SVD domain logic (parsing phases, derivedFrom, enum propagation) was mine. For the JS/web platform bugs, I spotted the symptoms and understood the impact, then leaned on <span class="ai-note">AI-assisted debugging</span> to navigate unfamiliar language quirks and find idiomatic fixes.
+    </p>
+
+    <div class="deep-card">
+      <h3>XML Parser Type Coercion — 5 Bugs From One Root Cause</h3>
+      <p class="challenge"><code>fast-xml-parser</code> silently converts anything numeric-looking to a JavaScript number. SVD version <code>"1.0"</code> became <code>1</code>. Register size <code>"0x20"</code> stayed a string. Descriptions that were just numbers caused <code>.replace() is not a function</code> crashes. This one parser behavior caused 5 separate bugs across the codebase.</p>
+      <div class="solution-divider">→ Solution <span class="ai-note" style="font-size:10px;margin-left:8px;">AI-assisted</span></div>
+      <p class="solution">Configured <code>numberParseOptions: { hex: false, leadingZeros: false, skipLike: /[.]/ }</code> to suppress the worst coercions. Widened <code>cleanText()</code> to accept <code>string | number | undefined | null</code> with explicit <code>String()</code> coercion. Added <code>parseHexOrDec()</code> with NaN guard for all numeric SVD fields. I knew what the SVD fields should look like — Copilot helped me find the right parser config options.</p>
+    </div>
+
+    <div class="deep-card">
+      <h3>Three-Level derivedFrom Resolution</h3>
+      <p class="challenge">CMSIS-SVD allows peripherals, registers, AND fields to inherit from other definitions. GPIOI derives registers from GPIOA, but GPIOI appears before GPIOA in the XML. TIM5's <code>CCR%s</code> (dim-expanded to CCR1-CCR4) inherits from TIM2's <code>CCR%s</code> — requiring per-instance resolution of the <code>%s</code> placeholder.</p>
+      <div class="solution-divider">→ Solution</div>
+      <p class="solution">Restructured parsing into 3 phases: (1) parse all base peripherals, (2) resolve register-level <code>derivedFrom</code> with dim-aware <code>%s</code> substitution, (3) parse derived peripherals and resolve their register inheritance. This came from reading the CMSIS-SVD spec and tracing real STM32 files by hand — pure domain work.</p>
+    </div>
+
+    <div class="deep-card">
+      <h3>JavaScript 32-bit Shift Overflow</h3>
+      <p class="challenge"><code>1 &lt;&lt; 32</code> equals <code>1</code> in JavaScript (bitwise shifts operate modulo 32), not <code>4294967296</code>. A 32-bit-wide field got a bitmask of <code>0x00000000</code> instead of <code>0xFFFFFFFF</code>. This silently corrupted field extraction, bit overlap detection, and value composition — producing 14,934 false overlap reports in validation.</p>
+      <div class="solution-divider">→ Solution <span class="ai-note" style="font-size:10px;margin-left:8px;">AI-assisted</span></div>
+      <p class="solution">Created a <code>safeMask(bitWidth)</code> helper: <code>bitWidth >= 32 ? 0xFFFFFFFF : (1 &lt;&lt; bitWidth) - 1</code>. Applied across svdParser and hudPanel. In C, <code>1 &lt;&lt; 32</code> is undefined behavior too — but I expected it to at least produce a large number, not wrap to 1. Copilot diagnosed the JS-specific modulo-32 behavior and suggested the guard.</p>
+    </div>
+
+    <div class="deep-card">
+      <h3>Enum Propagation Across Peripheral Siblings</h3>
+      <p class="challenge">ST's SVD defines enum values only on GPIOA (Input/Output/Alternate/Analog for MODER fields). GPIOB through GPIOI have identical field structures but no enums — showing useless <code>0, 1, 2, 3</code> dropdowns instead of meaningful names.</p>
+      <div class="solution-divider">→ Solution</div>
+      <p class="solution">Added a post-parse propagation pass that pools all enum definitions by <code>registerName.normalizedFieldPattern.bitWidth</code>, then fills in missing enums on matching fields across all peripherals. I knew this was the problem immediately from working with STM32 peripheral groups — it's how ST structures their SVDs. The matching logic was straightforward once I understood the pattern.</p>
+    </div>
+
+    <div class="deep-card">
+      <h3>Broken CSS Variable Concatenation</h3>
+      <p class="challenge">Bit highlight backgrounds used <code>getFieldColor(ci) + '30'</code>, intending to append alpha. But <code>getFieldColor()</code> returned <code>var(--field-0)</code>, producing <code>var(--field-0)30</code> — invalid CSS. The bit highlight feature was completely non-functional in every build.</p>
+      <div class="solution-divider">→ Solution <span class="ai-note" style="font-size:10px;margin-left:8px;">AI-assisted</span></div>
+      <p class="solution">Switched field colors from hex values to HSL components stored as CSS custom properties. Created <code>getFieldColorAlpha(index, alpha)</code> that reads computed HSL at runtime and returns proper <code>hsla()</code>. I could see the highlight wasn't rendering — Copilot explained why CSS <code>var()</code> can't be string-concatenated and proposed the HSL approach, which also solved theme compatibility for free.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Testing -->
+<section id="testing">
+  <div class="container fade-in">
+    <div class="section-label">Testing</div>
+    <h2>96 tests, 5 suites, under 500ms</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:28px;max-width:640px;">Test suite scaffolding was <span class="ai-note">AI-assisted</span> — I defined the test scenarios and edge cases, Copilot helped generate the boilerplate. Every assertion was reviewed and tuned by hand.</p>
+
+    <div class="metrics-bar">
+      <div class="metric"><span class="num">96</span><span class="label">Total Tests</span></div>
+      <div class="metric"><span class="num">100%</span><span class="label">Pass Rate</span></div>
+      <div class="metric"><span class="num">480ms</span><span class="label">Total Duration</span></div>
+      <div class="metric"><span class="num">0</span><span class="label">TypeScript Errors</span></div>
+    </div>
+
+    <div class="test-layers">
+      <div class="test-layer">
+        <h4>SVD Parser</h4>
+        <p>derivedFrom at all 3 levels, dim expansion, enum parsing, cleanText edge cases, field ordering, size parsing</p>
+        <div class="count">45 tests</div>
+      </div>
+      <div class="test-layer">
+        <h4>Code Generator</h4>
+        <p>All 4 styles against golden output, changed-only fields, enum comments, multi-field registers</p>
+        <div class="count">17 tests</div>
+      </div>
+      <div class="test-layer">
+        <h4>Cursor Tracker</h4>
+        <p>Debounce behavior, disposal cleanup, language filtering, cursor position extraction</p>
+        <div class="count">13 tests</div>
+      </div>
+      <div class="test-layer">
+        <h4>Symbol Resolver</h4>
+        <p>Arrow notation, underscore style, address literals, disambiguation cache, ambiguous tokens</p>
+        <div class="count">12 tests</div>
+      </div>
+      <div class="test-layer">
+        <h4>Cache Manager</h4>
+        <p>Save/load round-trip, hash validation, schema version mismatch, size eviction, corrupt file handling</p>
+        <div class="count">9 tests</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stack -->
+<section id="stack">
+  <div class="container fade-in">
+    <div class="section-label">Tech Stack</div>
+    <h2>What powers it</h2>
+    <div class="stack-grid">
+      <div class="stack-item">
+        <div class="stack-icon">TS</div>
+        <div class="stack-info">
+          <div class="stack-name">TypeScript 5.3</div>
+          <div class="stack-role">Language — strict mode, ES2022 target</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">⚡</div>
+        <div class="stack-info">
+          <div class="stack-name">VS Code Extension API</div>
+          <div class="stack-role">Platform — WebviewViewProvider, commands, settings</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">📦</div>
+        <div class="stack-info">
+          <div class="stack-name">esbuild</div>
+          <div class="stack-role">Bundler — single-file output, &lt;200ms builds</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">🧪</div>
+        <div class="stack-info">
+          <div class="stack-name">Vitest</div>
+          <div class="stack-role">Testing — 96 tests in 480ms</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">📄</div>
+        <div class="stack-info">
+          <div class="stack-name">fast-xml-parser</div>
+          <div class="stack-role">SVD parsing — only runtime dependency</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">🔒</div>
+        <div class="stack-info">
+          <div class="stack-name">SHA-256 Disk Cache</div>
+          <div class="stack-role">Caching — hash-validated, schema-versioned</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Motivation -->
+<section id="motivation">
+  <div class="container fade-in">
+    <div class="section-label">Motivation</div>
+    <h2>Why I built this</h2>
+    <p class="motivation-text">
+      Most embedded engineers spend half their time <em>not writing code</em> — they're hunting through PDFs, counting bit positions, and building register masks by hand. I've done this hundreds of times across STM32, NXP, and TI projects.
+      <br><br>
+      The data already exists in machine-readable form — every vendor ships CMSIS-SVD files describing every register down to the individual bit. The problem wasn't the data — it was that <em>no tool put it where you actually work</em>: inside the code editor, at the cursor, in real time.
+      <br><br>
+      SVD Register Tuner closes that gap. It's the tool I wished existed every time I typed <code style="font-family:var(--font-mono);font-size:14px;background:var(--elevated);padding:2px 6px;border-radius:3px;color:var(--cyan)">GPIOA-&gt;MODER</code> and then alt-tabbed to a PDF.
+      <br><br>
+      <span class="ai-note">I used AI (GitHub Copilot) as a development accelerator</span> — it helped with boilerplate, test scaffolding, and exploring unfamiliar VS Code APIs. The architecture, SVD parsing logic, domain decisions, and bug fixes were all mine. AI was a tool in the workflow, not the driver.
+    </p>
+    <a href="https://marketplace.visualstudio.com/items?itemName=TODO" target="_blank" class="marketplace-badge">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M14.25 1H1.75L0 3.5v10.75A.75.75 0 00.75 15h14.5a.75.75 0 00.75-.75V3.5L14.25 1zM8 12L2.5 7h3.25V4h4.5v3H13.5L8 12z"/></svg>
+      Available on VS Code Marketplace →
+    </a>
+  </div>
+</section>
+
+<!-- Roadmap -->
+<section id="roadmap">
+  <div class="container fade-in">
+    <div class="section-label">Roadmap</div>
+    <h2>What's next</h2>
+    <div class="roadmap-grid">
+      <div class="roadmap-card">
+        <span class="tag tag-planned">Planned</span>
+        <h3>Hover Provider</h3>
+        <p>Hover over any register expression in C/C++ code to see an inline bit-field tooltip — field names, positions, and access modes at a glance, without opening the sidebar.</p>
+      </div>
+      <div class="roadmap-card">
+        <span class="tag tag-planned">Planned</span>
+        <h3>Register Presets</h3>
+        <p>One-click common configurations: "GPIO Output Push-Pull", "UART 115200 8N1", "SPI Master Mode". Apply a full register setup instantly instead of toggling bits one by one.</p>
+      </div>
+      <div class="roadmap-card">
+        <span class="tag tag-planned">Planned</span>
+        <h3>Register History + Value Memory</h3>
+        <p>Tracks recently viewed registers and remembers the values you configured. Cached to disk so your register configurations persist across sessions — pick up exactly where you left off.</p>
+      </div>
+      <div class="roadmap-card">
+        <span class="tag tag-exploring">Exploring</span>
+        <h3>Multi-Vendor SVD Support</h3>
+        <p>Expanded testing and fixes for NXP, Nordic (nRF), TI, Microchip (SAM), and ESP32 SVD files beyond the current STM32 focus.</p>
+      </div>
+      <div class="roadmap-card">
+        <span class="tag tag-exploring">Exploring</span>
+        <h3>Datasheet Integration</h3>
+        <p>Contextual documentation for each field: what it controls, what happens when you set or clear a bit. Surfaces the "why" behind the bits — not just the layout, but the behavior.</p>
+      </div>
+      <div class="roadmap-card">
+        <span class="tag tag-exploring">Exploring</span>
+        <h3>SVD Pack Manager</h3>
+        <p>Browse and download vendor SVD packs from within VS Code. No more hunting for SVD files — search by chip family, download, and start tuning registers immediately.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-name">SVD Register Tuner</div>
+    <div class="footer-links">
+      <a href="https://marketplace.visualstudio.com/items?itemName=TODO" target="_blank">Marketplace</a>
+      <a href="https://github.com/TODO/svd-register-tuner" target="_blank">GitHub</a>
+      <a href="#" target="_blank">Portfolio</a>
+    </div>
+    <div class="footer-copy">Built by Rohit Mehta — 2026</div>
+  </div>
+</footer>
+
+<script>
+// ── Hex Gutter ──────────────────────────────────────
+(function() {
+  const gutter = document.getElementById('hex-gutter');
+  let addr = 0x08000000;
+  let html = '';
+  for (let i = 0; i < 200; i++) {
+    html += '0x' + addr.toString(16).padStart(8, '0').toUpperCase() + '\n';
+    addr += 0x10;
+  }
+  gutter.textContent = html;
+})();
+
+// ── Fade In on Scroll ───────────────────────────────
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// ── Smooth Scroll Nav ───────────────────────────────
+document.querySelectorAll('.nav-links a').forEach(link => {
+  link.addEventListener('click', (e) => {
+    const href = link.getAttribute('href');
+    if (href.startsWith('#')) {
+      e.preventDefault();
+      document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+});
+</script>
+
+</body>
+</html>

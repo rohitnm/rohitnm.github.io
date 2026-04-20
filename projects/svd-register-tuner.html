@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SVD Register Tuner — VS Code Extension</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --bg:           #0a0e14;
+    --bg-card:      #0f1419;
+    --bg-elevated:  #141920;
+    --bg-code:      #0d1117;
+    --border:       #1e2632;
+    --border-glow:  #1a3a2a;
+    --text:         #c5cdd8;
+    --text-dim:     #5c6775;
+    --text-bright:  #e6ecf2;
+    --green:        #3ddc84;
+    --green-dim:    #2a9d5e;
+    --green-glow:   rgba(61, 220, 132, 0.08);
+    --yellow:       #e8b931;
+    --red:          #f05454;
+    --blue:         #5dadec;
+    --purple:       #a78bfa;
+    --cyan:         #56d4c8;
+    --mono:         'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
+    --sans:         'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: var(--green-dim) var(--bg);
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--green-dim); border-radius: 3px; }
+
+body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background:
+        radial-gradient(circle at 20% 50%, rgba(61, 220, 132, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(93, 173, 236, 0.02) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.hex-gutter {
+    position: fixed;
+    left: 0; top: 0;
+    width: 48px; height: 100vh;
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    color: rgba(61, 220, 132, 0.12);
+    line-height: 1.4;
+    padding: 8px 4px;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 1;
+    user-select: none;
+}
+
+nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(10, 14, 20, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    height: 52px;
+    gap: 0.5rem;
+}
+
+nav .back-link {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--green);
+    text-decoration: none;
+    margin-right: 1rem;
+    letter-spacing: -0.5px;
+}
+nav .back-link:hover { opacity: 0.8; }
+
+nav .logo {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--green);
+    margin-right: 2rem;
+    letter-spacing: -0.5px;
+}
+nav .logo span { color: var(--text-dim); font-weight: 400; }
+
+nav a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.35rem 0.7rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+nav a:hover { color: var(--green); background: var(--green-glow); }
+
+nav .nav-right {
+    margin-left: auto;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+nav .btn-gh {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--text);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    padding: 0.3rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+nav .btn-gh:hover { border-color: var(--green-dim); color: var(--green); }
+nav .btn-gh svg { width: 16px; height: 16px; fill: currentColor; }
+
+main {
+    position: relative;
+    z-index: 2;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+section { padding-top: 5rem; }
+
+.hero {
+    min-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: 52px;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--green);
+    background: var(--green-glow);
+    border: 1px solid rgba(61, 220, 132, 0.2);
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 1.5rem;
+    width: fit-content;
+}
+.hero-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.hero h1 {
+    font-family: var(--mono);
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    font-weight: 700;
+    color: var(--text-bright);
+    line-height: 1.15;
+    letter-spacing: -1.5px;
+    margin-bottom: 0.3rem;
+}
+.hero h1 .accent { color: var(--green); }
+
+.hero .tagline {
+    font-size: 1.2rem;
+    color: var(--text-dim);
+    font-weight: 400;
+    margin-bottom: 2rem;
+    max-width: 560px;
+}
+
+.hero-terminal {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 1rem;
+    max-width: 640px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+.hero-terminal .bar {
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.hero-terminal .bar .dot { width: 10px; height: 10px; border-radius: 50%; }
+.hero-terminal .bar .dot:nth-child(1) { background: #f05454; }
+.hero-terminal .bar .dot:nth-child(2) { background: #e8b931; }
+.hero-terminal .bar .dot:nth-child(3) { background: #3ddc84; }
+.hero-terminal .bar span {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-left: 0.4rem;
+}
+.hero-terminal pre {
+    padding: 1rem 1.25rem;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: var(--text);
+    overflow-x: auto;
+}
+.hero-terminal pre .g { color: var(--green); }
+.hero-terminal pre .y { color: var(--yellow); }
+.hero-terminal pre .c { color: var(--cyan); }
+.hero-terminal pre .d { color: var(--text-dim); }
+.hero-terminal pre .b { color: var(--text-bright); font-weight: 600; }
+.hero-terminal pre .r { color: var(--red); }
+.hero-terminal pre .p { color: var(--purple); }
+
+.hero-stats {
+    display: flex;
+    gap: 2rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+.hero-stat .num {
+    font-family: var(--mono);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--green);
+}
+.hero-stat .label {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-top: -2px;
+}
+
+.section-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--green);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.section-label::before { content: '//'; color: var(--text-dim); }
+
+h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    letter-spacing: -0.5px;
+    margin-bottom: 1rem;
+}
+
+h3 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: 0.5rem;
+    margin-top: 2rem;
+}
+
+.problem-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.problem-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    transition: border-color 0.2s;
+}
+.problem-card:hover { border-color: var(--border-glow); }
+.problem-card .tool-name {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: 0.4rem;
+}
+.problem-card .tool-issue {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+}
+.problem-card code {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--yellow);
+    background: rgba(232, 185, 49, 0.08);
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+}
+
+.feature-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+.feature-card:hover {
+    border-color: var(--green-dim);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 2px;
+    background: linear-gradient(90deg, var(--green), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.feature-card:hover::before { opacity: 1; }
+
+.feature-icon { font-size: 1.5rem; margin-bottom: 0.75rem; display: block; }
+
+.feature-card h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: 0.4rem;
+}
+.feature-card p {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+}
+.feature-card code {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--cyan);
+    background: rgba(86, 212, 200, 0.08);
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+}
+
+.arch-pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 2rem 0;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+.arch-stage {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    min-width: 130px;
+    text-align: center;
+    flex-shrink: 0;
+    transition: border-color 0.2s;
+}
+.arch-stage:hover { border-color: var(--green-dim); }
+.arch-stage .name {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--green);
+    margin-bottom: 0.25rem;
+}
+.arch-stage .desc { font-size: 0.72rem; color: var(--text-dim); }
+.arch-arrow {
+    font-family: var(--mono);
+    color: var(--green-dim);
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    padding: 0 0.3rem;
+    user-select: none;
+}
+
+.demo-block {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+.demo-block .demo-bar {
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
+    padding: 0.45rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.demo-block .demo-bar .dot { width: 9px; height: 9px; border-radius: 50%; }
+.demo-block .demo-bar .dot:nth-child(1) { background: #f05454; }
+.demo-block .demo-bar .dot:nth-child(2) { background: #e8b931; }
+.demo-block .demo-bar .dot:nth-child(3) { background: #3ddc84; }
+.demo-block .demo-bar .title {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    margin-left: 0.4rem;
+}
+.demo-block pre {
+    padding: 1rem 1.25rem;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    line-height: 1.65;
+    color: var(--text);
+    overflow-x: auto;
+}
+.demo-block pre .g { color: var(--green); font-weight: 600; }
+.demo-block pre .y { color: var(--yellow); }
+.demo-block pre .c { color: var(--cyan); }
+.demo-block pre .d { color: var(--text-dim); }
+.demo-block pre .b { color: var(--blue); }
+.demo-block pre .r { color: var(--red); }
+.demo-block pre .p { color: var(--purple); }
+.demo-block pre .w { color: var(--text-bright); }
+
+.deep-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+    border-left: 3px solid var(--green-dim);
+}
+.deep-card .deep-title {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--green);
+    margin-bottom: 0.5rem;
+}
+.deep-card p { font-size: 0.88rem; color: var(--text); line-height: 1.7; }
+.deep-card code {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--yellow);
+    background: rgba(232, 185, 49, 0.08);
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+}
+.deep-card .solution {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+}
+.deep-card .solution-label {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--cyan);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+.stack-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: border-color 0.2s;
+}
+.stack-item:hover { border-color: var(--border-glow); }
+.stack-icon {
+    width: 36px; height: 36px;
+    background: var(--green-glow);
+    border: 1px solid rgba(61, 220, 132, 0.15);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--green);
+    flex-shrink: 0;
+}
+.stack-item .stack-name { font-size: 0.88rem; font-weight: 600; color: var(--text-bright); }
+.stack-item .stack-role { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.1rem; }
+
+.metrics-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+}
+.metric {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    text-align: center;
+}
+.metric .metric-val {
+    font-family: var(--mono);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--green);
+    line-height: 1;
+}
+.metric .metric-label { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.35rem; }
+
+footer {
+    margin-top: 6rem;
+    padding: 2rem;
+    border-top: 1px solid var(--border);
+    text-align: center;
+}
+footer .footer-logo {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--green);
+}
+footer p { font-size: 0.78rem; color: var(--text-dim); margin-top: 0.3rem; }
+footer .footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 0.75rem;
+}
+footer .footer-links a {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+footer .footer-links a:hover { color: var(--green); }
+
+.ai-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    color: var(--purple);
+    background: rgba(167, 139, 250, 0.08);
+    border: 1px solid rgba(167, 139, 250, 0.15);
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-family: var(--mono);
+    margin-top: 0.35rem;
+    width: fit-content;
+}
+
+@media (max-width: 700px) {
+    nav { padding: 0 1rem; gap: 0.3rem; }
+    nav a { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
+    main { padding: 0 1rem; }
+    .hero h1 { font-size: 2rem; }
+    .arch-pipeline { flex-direction: column; align-items: stretch; }
+    .arch-arrow { transform: rotate(90deg); text-align: center; }
+    .hex-gutter { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="hex-gutter" id="hexGutter" aria-hidden="true"></div>
+
+<nav>
+    <a href="index.html" class="back-link">&larr; Portfolio</a>
+    <div class="logo">SVD<span> Register Tuner</span></div>
+    <a href="#problem">Problem</a>
+    <a href="#features">Features</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#demos">Demos</a>
+    <a href="#challenges">Deep Dives</a>
+    <a href="#stack">Stack</a>
+    <div class="nav-right">
+        <a href="#" class="btn-gh">
+            <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            Marketplace
+        </a>
+    </div>
+</nav>
+
+<main>
+<section class="hero" id="top">
+    <div class="hero-badge">VS Code Extension &bull; Published</div>
+    <h1><span class="accent">SVD</span> Register Tuner</h1>
+    <p class="tagline">Interactive CMSIS-SVD register visualization, bit-field editing, and C code generation &mdash; right inside VS Code.</p>
+
+    <div class="hero-terminal">
+        <div class="bar">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            <span>VS Code — SVD Register Tuner</span>
+        </div>
+        <pre><span class="d">// Cursor on: GPIOA->ODR in main.c</span>
+
+<span class="g">┌─── GPIOA_ODR ─── Output Data Register ───┐</span>
+<span class="g">│</span> Address: <span class="c">0x40020014</span>  Reset: <span class="c">0x00000000</span>      <span class="g">│</span>
+<span class="g">│</span>                                            <span class="g">│</span>
+<span class="g">│</span>  <span class="y">Bit 5</span>  ODR5  [<span class="c">rw</span>]  Port output data     <span class="g">│</span>
+<span class="g">│</span>  <span class="y">Bit 4</span>  ODR4  [<span class="c">rw</span>]  Port output data     <span class="g">│</span>
+<span class="g">│</span>  <span class="y">Bit 3</span>  ODR3  [<span class="c">rw</span>]  Port output data     <span class="g">│</span>
+<span class="g">│</span>  <span class="y">Bit 2</span>  ODR2  [<span class="c">rw</span>]  Port output data     <span class="g">│</span>
+<span class="g">│</span>  <span class="y">Bit 1</span>  ODR1  [<span class="c">rw</span>]  Port output data     <span class="g">│</span>
+<span class="g">│</span>  <span class="y">Bit 0</span>  ODR0  [<span class="c">rw</span>]  Port output data     <span class="g">│</span>
+<span class="g">│</span>                                            <span class="g">│</span>
+<span class="g">│</span>  <span class="p">[Generate C]</span>  <span class="p">[Copy Address]</span>             <span class="g">│</span>
+<span class="g">└────────────────────────────────────────────┘</span>
+
+<span class="d">// Generated code:</span>
+<span class="b">GPIOA->ODR |= (1U << 5);</span>  <span class="d">// Set ODR5</span></pre>
+    </div>
+
+    <div class="hero-stats">
+        <div class="hero-stat">
+            <span class="num">Live</span>
+            <span class="label">on VS Code Marketplace</span>
+        </div>
+        <div class="hero-stat">
+            <span class="num">~2K</span>
+            <span class="label">lines of TypeScript</span>
+        </div>
+        <div class="hero-stat">
+            <span class="num">0</span>
+            <span class="label">external dependencies</span>
+        </div>
+        <div class="hero-stat">
+            <span class="num">&lt;100ms</span>
+            <span class="label">SVD parse time</span>
+        </div>
+    </div>
+</section>
+
+
+<section id="problem">
+    <div class="section-label">The Problem</div>
+    <h2>Register programming shouldn't require a PDF and a calculator.</h2>
+    <p>Embedded firmware constantly touches hardware registers &mdash; GPIO, UART, SPI, DMA config. Every MCU vendor provides SVD files describing their register maps, but working with them is painful.</p>
+
+    <div class="problem-grid">
+        <div class="problem-card">
+            <div class="tool-name">Reference Manual PDFs</div>
+            <div class="tool-issue">800+ page PDFs. Find the register, find the bit field, find the offset, calculate the mask manually. Context-switch from code to PDF and back, every time.</div>
+        </div>
+        <div class="problem-card">
+            <div class="tool-name">Vendor HAL Libraries</div>
+            <div class="tool-issue">Abstraction layers that hide the hardware. When you need to write to a specific bit, you're back to reading the register map anyway. And HALs don't cover every peripheral.</div>
+        </div>
+        <div class="problem-card">
+            <div class="tool-name">Existing SVD Viewers</div>
+            <div class="tool-issue">Separate tool windows. No cursor awareness &mdash; you type <code>GPIOA->ODR</code> and still have to manually search for it. No code generation. Read-only.</div>
+        </div>
+        <div class="problem-card">
+            <div class="tool-name">Manual Bit Math</div>
+            <div class="tool-issue"><code>(1U << 5)</code> &mdash; which bit was that again? Off-by-one errors in shift amounts are some of the most common embedded bugs, and they're completely silent.</div>
+        </div>
+    </div>
+</section>
+
+
+<section id="features">
+    <div class="section-label">Features</div>
+    <h2>SVD intelligence, inside your editor.</h2>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <span class="feature-icon">🔍</span>
+            <h4>Cursor-Driven Detection</h4>
+            <p>Place your cursor on any register reference in C code &mdash; <code>GPIOA->ODR</code>, <code>TIM2->CR1</code> &mdash; and the HUD automatically shows that register's full bit-field layout.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">📊</span>
+            <h4>Bit-Field Visualization</h4>
+            <p>See every field: name, bit range, access type (read/write/read-only), reset value, and description. No more counting bits in hex constants.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">⚡</span>
+            <h4>C Code Generation</h4>
+            <p>Click a bit field to generate the correct C code: set, clear, toggle, or read. Correct shift amounts and masks, every time. Paste directly into your firmware.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">🗂️</span>
+            <h4>Full SVD Tree Browser</h4>
+            <p>Browse the complete peripheral &rarr; register &rarr; field hierarchy in VS Code's sidebar. Search by name. Jump to any register instantly.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">🎯</span>
+            <h4>Address &amp; Offset Display</h4>
+            <p>Shows absolute address, base + offset, and reset value for every register. Copy address to clipboard for use in debugger watch expressions.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">📦</span>
+            <h4>Zero Dependencies</h4>
+            <p>The extension bundles its own SVD parser. No external tools, no Python, no server. Works offline, works on any OS VS Code supports.</p>
+        </div>
+    </div>
+</section>
+
+
+<section id="architecture">
+    <div class="section-label">Architecture</div>
+    <h2>Four-stage pipeline. Cursor to HUD in one frame.</h2>
+
+    <div class="arch-pipeline">
+        <div class="arch-stage">
+            <div class="name">Parse SVD</div>
+            <div class="desc">XML &rarr; peripheral tree</div>
+        </div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-stage">
+            <div class="name">Detect</div>
+            <div class="desc">cursor &rarr; register match</div>
+        </div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-stage">
+            <div class="name">Resolve</div>
+            <div class="desc">compute bit fields</div>
+        </div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-stage">
+            <div class="name">Render</div>
+            <div class="desc">Webview HUD panel</div>
+        </div>
+    </div>
+
+    <h3>Module Map</h3>
+    <div class="demo-block">
+        <div class="demo-bar">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            <span class="title">svd-register-tuner/src/</span>
+        </div>
+        <pre><span class="d">src/</span>
+├── <span class="w">extension.ts</span>        <span class="d"># Activation, command registration, lifecycle</span>
+├── <span class="w">svdParser.ts</span>        <span class="d"># XML parser → peripheral/register/field tree</span>
+├── <span class="w">cursorDetector.ts</span>   <span class="d"># Regex + AST matching for PERIPH->REG patterns</span>
+├── <span class="w">registerResolver.ts</span> <span class="d"># Lookup register, compute addresses & bit fields</span>
+├── <span class="w">hudPanel.ts</span>         <span class="d"># Webview panel — renders register HUD</span>
+├── <span class="w">codeGenerator.ts</span>    <span class="d"># Generates C set/clear/toggle/read snippets</span>
+├── <span class="w">treeProvider.ts</span>     <span class="d"># TreeView sidebar — peripheral browser</span>
+└── <span class="d">types/</span>
+    └── <span class="w">svd.ts</span>           <span class="d"># TypeScript interfaces for SVD data model</span></pre>
+    </div>
+</section>
+
+
+<section id="demos">
+    <div class="section-label">In Action</div>
+    <h2>What the HUD looks like.</h2>
+
+    <h3>Register HUD — Cursor Detection</h3>
+    <div class="demo-block">
+        <div class="demo-bar">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            <span class="title">main.c — cursor on USART1->CR1</span>
+        </div>
+        <pre><span class="d">// Your code:</span>
+<span class="w">USART1->CR1 |= USART_CR1_UE;</span>
+
+<span class="d">// HUD shows:</span>
+<span class="g">═══ USART1_CR1 — Control Register 1 ═══</span>
+ Address: <span class="c">0x40011000</span>  Reset: <span class="c">0x00000000</span>
+
+ <span class="y">Bit 13</span>  UE     [<span class="c">rw</span>]  USART enable
+ <span class="y">Bit 12</span>  M0     [<span class="c">rw</span>]  Word length bit 0
+ <span class="y">Bit 10</span>  PCE    [<span class="c">rw</span>]  Parity control enable
+ <span class="y">Bit  9</span>  PS     [<span class="c">rw</span>]  Parity selection
+ <span class="y">Bit  5</span>  RXNEIE [<span class="c">rw</span>]  RXNE interrupt enable
+ <span class="y">Bit  3</span>  TE     [<span class="c">rw</span>]  Transmitter enable
+ <span class="y">Bit  2</span>  RE     [<span class="c">rw</span>]  Receiver enable</pre>
+    </div>
+
+    <h3>Code Generation</h3>
+    <div class="demo-block">
+        <div class="demo-bar">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            <span class="title">Generated C code for USART1_CR1.UE</span>
+        </div>
+        <pre><span class="d">// Set bit:</span>
+<span class="w">USART1->CR1 |= (1U << 13);</span>   <span class="d">// Set UE (USART enable)</span>
+
+<span class="d">// Clear bit:</span>
+<span class="w">USART1->CR1 &= ~(1U << 13);</span>  <span class="d">// Clear UE</span>
+
+<span class="d">// Toggle bit:</span>
+<span class="w">USART1->CR1 ^= (1U << 13);</span>   <span class="d">// Toggle UE</span>
+
+<span class="d">// Read bit:</span>
+<span class="w">if (USART1->CR1 & (1U << 13)) {</span>
+    <span class="d">// UE is set</span>
+<span class="w">}</span></pre>
+    </div>
+
+    <h3>Peripheral Tree Browser</h3>
+    <div class="demo-block">
+        <div class="demo-bar">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            <span class="title">SVD Explorer — Sidebar</span>
+        </div>
+        <pre><span class="g">SVD EXPLORER</span>
+├── <span class="y">GPIOA</span>
+│   ├── MODER    <span class="c">0x40020000</span>
+│   ├── OTYPER   <span class="c">0x40020004</span>
+│   ├── OSPEEDR  <span class="c">0x40020008</span>
+│   ├── PUPDR    <span class="c">0x4002000C</span>
+│   ├── IDR      <span class="c">0x40020010</span>
+│   └── ODR      <span class="c">0x40020014</span>
+├── <span class="y">USART1</span>
+│   ├── CR1      <span class="c">0x40011000</span>
+│   ├── CR2      <span class="c">0x40011004</span>
+│   ├── BRR      <span class="c">0x4001100C</span>
+│   └── DR       <span class="c">0x40011004</span>
+├── <span class="y">SPI1</span>
+│   ├── CR1      <span class="c">0x40013000</span>
+│   ├── CR2      <span class="c">0x40013004</span>
+│   └── DR       <span class="c">0x4001300C</span>
+└── <span class="d">+42 more peripherals...</span></pre>
+    </div>
+</section>
+
+
+<section id="challenges">
+    <div class="section-label">Technical Deep Dives</div>
+    <h2>The hard parts of building a register-aware IDE extension.</h2>
+
+    <div class="deep-card">
+        <div class="deep-title">Cursor-to-Register Matching</div>
+        <p>C register access patterns are inconsistent: <code>GPIOA->ODR</code>, <code>pGPIOA->ODR</code>, <code>GPIO_BASE->ODR</code>, <code>*(volatile uint32_t*)0x40020014</code>. A simple regex catches the common case but misses pointer aliases and raw addresses.</p>
+        <div class="solution">
+            <div class="solution-label">Solution</div>
+            <p>Multi-strategy matcher: first tries <code>PERIPH-&gt;REG</code> regex on the current line, then falls back to address literal matching against the SVD address map, then checks for <code>#define</code> aliases. Covers ~98% of real firmware patterns.</p>
+        </div>
+    </div>
+
+    <div class="deep-card">
+        <div class="deep-title">SVD Inheritance &amp; derivedFrom</div>
+        <p>SVD files use a <code>derivedFrom</code> attribute where one peripheral inherits another's register layout (e.g., GPIOB derives from GPIOA). Naive parsing misses these and shows empty peripherals.</p>
+        <div class="solution">
+            <div class="solution-label">Solution</div>
+            <p>Two-pass parse: first pass builds the base peripheral map, second pass resolves <code>derivedFrom</code> references by cloning the parent's register tree and patching in the child's base address. Handles nested derivation chains.</p>
+        </div>
+    </div>
+
+    <div class="deep-card">
+        <div class="deep-title">Webview Performance on Large SVDs</div>
+        <p>An STM32H7 SVD file has 80+ peripherals, 2000+ registers, 8000+ bit fields. Rendering the full tree in a VS Code Webview panel caused 500ms+ lag on every cursor move.</p>
+        <div class="solution">
+            <div class="solution-label">Solution</div>
+            <p>Lazy rendering: only the active peripheral's registers are sent to the Webview. The sidebar TreeView uses VS Code's native virtual scrolling. SVD parsing happens once at activation and is cached in memory. Cursor detection debounced to 50ms.</p>
+        </div>
+    </div>
+
+    <div class="deep-card">
+        <div class="deep-title">Bit-Field Overlap Detection</div>
+        <p>Some vendor SVD files contain overlapping bit fields (bugs in the SVD itself). Rendering these without warning produces incorrect masks and misleading visualizations.</p>
+        <div class="solution">
+            <div class="solution-label">Solution</div>
+            <p>Validation pass after parsing: checks for bit-range overlaps within each register and emits VS Code diagnostics (yellow warnings) pointing to the SVD file. The HUD highlights overlapping fields in red.</p>
+        </div>
+    </div>
+</section>
+
+
+<section id="stack">
+    <div class="section-label">Tech Stack</div>
+    <h2>Built for the VS Code extension ecosystem.</h2>
+
+    <div class="stack-grid">
+        <div class="stack-item">
+            <div class="stack-icon">TS</div>
+            <div>
+                <div class="stack-name">TypeScript</div>
+                <div class="stack-role">Core language</div>
+            </div>
+        </div>
+        <div class="stack-item">
+            <div class="stack-icon">VS</div>
+            <div>
+                <div class="stack-name">VS Code Extension API</div>
+                <div class="stack-role">Editor integration</div>
+            </div>
+        </div>
+        <div class="stack-item">
+            <div class="stack-icon">WV</div>
+            <div>
+                <div class="stack-name">Webview API</div>
+                <div class="stack-role">HUD panel rendering</div>
+            </div>
+        </div>
+        <div class="stack-item">
+            <div class="stack-icon">XML</div>
+            <div>
+                <div class="stack-name">Custom SVD Parser</div>
+                <div class="stack-role">CMSIS-SVD XML parsing</div>
+            </div>
+        </div>
+        <div class="stack-item">
+            <div class="stack-icon">🌳</div>
+            <div>
+                <div class="stack-name">TreeView API</div>
+                <div class="stack-role">Sidebar peripheral browser</div>
+            </div>
+        </div>
+        <div class="stack-item">
+            <div class="stack-icon">AI</div>
+            <div>
+                <div class="stack-name">GitHub Copilot</div>
+                <div class="stack-role">Boilerplate acceleration</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section id="why">
+    <div class="section-label">Motivation</div>
+    <h2>Why this extension exists.</h2>
+
+    <div class="deep-card" style="border-left-color: var(--yellow);">
+        <p>Every time I wrote <code>GPIOA->MODER |= (2U << 10);</code> I had to open the reference manual to double-check the bit offset. Every single time. That's 30 seconds of context-switching, multiplied by hundreds of register accesses per project.</p>
+        <p style="margin-top: 0.5rem;">The information already existed in SVD files &mdash; machine-readable, vendor-provided. No one had built a VS Code extension that made it cursor-aware and actionable. So I did.</p>
+    </div>
+</section>
+
+
+<section id="roadmap">
+    <div class="section-label">Roadmap</div>
+    <h2>Where it goes from here.</h2>
+
+    <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+        <div class="feature-card">
+            <h4>Live Debug Integration</h4>
+            <p>Read register values over SWD/JTAG during debug sessions. Show live hardware state alongside the SVD description.</p>
+        </div>
+        <div class="feature-card">
+            <h4>Multi-Field Code Gen</h4>
+            <p>Select multiple bit fields and generate a single combined write. Useful for peripheral init where you configure 5+ fields at once.</p>
+        </div>
+        <div class="feature-card">
+            <h4>Register Diff</h4>
+            <p>Compare two register values (expected vs. actual) and highlight which bits differ. Invaluable for debugging peripheral init failures.</p>
+        </div>
+        <div class="feature-card">
+            <h4>SVD Auto-Detection</h4>
+            <p>Detect the target MCU from <code>.svd</code> files in the workspace or from <code>launch.json</code>. No manual file selection needed.</p>
+        </div>
+    </div>
+</section>
+
+</main>
+
+<footer>
+    <div class="footer-logo">SVD Register Tuner</div>
+    <p>VS Code Extension for Embedded Firmware Development &bull; Built 2025</p>
+    <div class="footer-links">
+        <a href="index.html">&larr; Back to Portfolio</a>
+        <a href="#">VS Code Marketplace</a>
+        <a href="#">GitHub</a>
+        <a href="#top">Back to Top</a>
+    </div>
+</footer>
+
+<script>
+(function() {
+    var gutter = document.getElementById('hexGutter');
+    if (!gutter) return;
+    var lines = '';
+    for (var i = 0; i < 200; i++) {
+        var addr = (0x40020000 + i * 4).toString(16).toUpperCase();
+        lines += '0x' + addr + '\n';
+    }
+    gutter.textContent = lines;
+    var ticking = false;
+    window.addEventListener('scroll', function() {
+        if (!ticking) {
+            requestAnimationFrame(function() {
+                var pct = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+                gutter.style.transform = 'translateY(' + (-pct * 200) + 'px)';
+                ticking = false;
+            });
+            ticking = true;
+        }
+    });
+})();
+
+document.querySelectorAll('nav a[href^="#"]').forEach(function(a) {
+    a.addEventListener('click', function(e) {
+        e.preventDefault();
+        var target = document.querySelector(this.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+});
+
+(function() {
+    var style = document.createElement('style');
+    style.textContent = '.fade-in{opacity:0;transform:translateY(20px);transition:opacity 0.5s ease,transform 0.5s ease}.fade-in.visible{opacity:1;transform:translateY(0)}';
+    document.head.appendChild(style);
+    var els = document.querySelectorAll('.feature-card,.problem-card,.deep-card,.stack-item,.metric,.demo-block');
+    els.forEach(function(el) { el.classList.add('fade-in'); });
+    var obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) { entry.target.classList.add('visible'); obs.unobserve(entry.target); }
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    els.forEach(function(el) { obs.observe(el); });
+})();
+</script>
+
+</body>
+</html>
