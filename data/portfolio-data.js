@@ -18,14 +18,17 @@ const PORTFOLIO = {
   // ======================== COMPETENCIES ========================
   // Dark theme only (competencies strip)
   competencies: [
-    'Bare Metal & RTOS',
-    'Embedded Architecture',
-    'Safety-Critical Systems',
-    'OTA Firmware',
-    'JTAG / GDB Debugging',
-    'Sensor Integration',
-    'Control Systems',
-    'Testing & Validation',
+    'Embedded C/C++ & Bare-Metal Development',
+    'RTOS (FreeRTOS) & Real-Time Systems',
+    'Embedded Architecture & Firmware Design',
+    'Device Drivers & Hardware Abstraction Layers (HAL)',
+    'Sensor Integration & Signal Processing',
+    'Control Systems (PID, Motor Control)',
+    'Bootloaders & OTA Firmware Updates',
+    'Embedded Linux (Yocto, Buildroot)',
+    'Testing, Validation & Debugging',
+    'Oscilloscope & Logic Analyzer Debugging',
+    'Hardware Bring-Up & Board-Level Debugging',
   ],
 
   // ======================== METRICS ========================
@@ -36,22 +39,20 @@ const PORTFOLIO = {
     { number: '\u221E', label: 'Curiosity Level',                      context: 'Always Learning' },
     { number: '100%',   label: "Chance I'll Read Documentation",       context: 'Before Asking Questions' },
     { number: '115200', label: 'Baud Rate of Choice',                  context: 'The Classic' },
-    { number: '20th',   label: 'Global \u2014 MITRE eCTF',            context: 'Team Virginia Tech' },
+    { number: '20th',   label: 'Global \u2014 MITRE eCTF',             context: 'Team Virginia Tech' },
     { number: '1024',   label: 'Coffee Cups Every Year',               context: 'Fuel for Life' },
     { number: '3rd',    label: 'All India Rank \u2014 ROBOCON 2018',   context: '108+ Teams Nationally' },
     { number: '5th',    label: 'All India Rank \u2014 ROBOCON 2020',   context: '94+ Teams Nationally' },
     { number: '8th',    label: 'All India Rank \u2014 ROBOCON 2021',   context: '114+ Teams Nationally' },
     { number: '3.2',    label: 'Undergraduate GPA',                    context: 'University of Mumbai' },
     { number: '3.75',   label: 'Graduate GPA',                         context: 'Virginia Tech \u2014 M.S. CompE' },
-    { number: '5+',     label: 'Communication Protocols',              context: 'UART \u2022 SPI \u2022 I2C \u2022 CAN \u2022 JTAG' },
+    { number: '5+',     label: 'Communication Protocols',              context: 'UART \u2022 SPI \u2022 I2C \u2022 CAN \u2022 LIN' },
     { number: '7+',     label: 'Microcontroller Families',             context: 'STM32 \u2022 MSP432 \u2022 MAX78000 \u2022 Renesas \u2022 8051 \u2022 AVR \u2022 RPi' },
     { number: '6',      label: 'Programming Languages',                context: 'C \u2022 C++ \u2022 Python \u2022 C# \u2022 Bash \u2022 Assembly' },
     { number: '7+',     label: 'IDEs & Toolchains',                    context: 'STM32CubeIDE \u2022 IAR \u2022 CCS \u2022 MPLab \u2022 VS Code' },
     { number: '1',      label: 'VS Code Marketplace Extension',        context: 'SVD Register Tuner' },
     { number: '10+',    label: 'Sensor Types Integrated',              context: 'LIDAR \u2022 Camera \u2022 Ultrasonic \u2022 IMU \u2022 Encoders' },
     { number: '4',      label: 'Years on Robotics Team',               context: 'K.J. Somaiya 2017\u20132021' },
-    { number: '5',      label: 'States Lived In',                      context: 'MH, IND \u2192 VA \u2192 MA \u2192 SC \u2192 NC' },
-    { number: '4/5',    label: 'Spice Tolerance',                      context: 'Raised in Mumbai' },
     { number: '500+',   label: 'Hours of PS5 Gameplay Logged',         context: 'Recharge Time' },
     { number: '30+',    label: 'Games in Backlog',                     context: 'Will Finish Eventually' },
     { number: '5',      label: 'Languages Spoken',                     context: 'English \u2022 Hindi \u2022 Gujarati \u2022 Marathi \u2022 Spanish' },
@@ -60,7 +61,7 @@ const PORTFOLIO = {
   // ======================== EXPERIENCE ========================
   experience: [
     {
-      company: 'Baxter International',
+      company: 'Baxter International \u2014 LER TechForce LLC',
       companyFull: 'Baxter International \u2014 LER TechForce LLC',
       date: 'Apr 2025 \u2013 Present',
       role: 'Embedded Software Engineer',
@@ -90,7 +91,7 @@ const PORTFOLIO = {
     {
       company: 'Itron, Inc.',
       date: 'Jul 2024 \u2013 Apr 2025',
-      role: 'Firmware Engineer',
+      role: 'Firmware Engineer (Appretenceship)',
       location: 'West Union, SC',
       bullets: [
         {
