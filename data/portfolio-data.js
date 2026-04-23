@@ -69,23 +69,47 @@ const PORTFOLIO = {
       current: true,
       bullets: [
         {
-          text: 'Improving OTA firmware upgrade reliability for a medical bed platform, supporting increase in success rate from <strong>90% toward 95%</strong> via dual-bank flash restructuring and CRC-checkpoint gating.',
+          text: '<strong><em> Worked on the embedded software team for a network-connected medical bed system, adding features to enable new hardware capabilities.</em></strong>',
+        },
+        { 
+          text: 'Improved OTA firmware upgrade reliability for a medical bed system by investigating update failure points and documenting the end-to-end upgrade process, supporting an increase in target success rate from <strong>90% toward a 95%</strong> target.',
           expandable: true,
           detailId: 'ota-detail',
-          detail: 'Dual-bank flash \u2014 Bank A runs active firmware while Bank B receives the new image. On completion, a bank-swap flag is written and the device reboots into the updated bank. On slower eMMC parts, the write phase could exceed the watchdog window, causing the device to reset mid-swap and fall back to the old image. The fix restructures writes to feed the watchdog between 4KB blocks and adds a CRC checkpoint before committing the swap flag, ensuring an interrupted update never leaves the device half-flashed.',
+          detail: '<ul><p style="font-size: larger;"><strong>Description:</strong></p><li>Worked on enhancing the reliability of OTA firmware updates for a network-connected medical bed system, focusing on identifying failure points and improving upgrade success rates.</li></ul><br><ul><p style="font-size: larger;"><strong>What I Did:</strong></p><li>Analyzed end-to-end OTA workflow across embedded Linux (Yocto) and RTOS subsystems.</li><li>Identified critical failure points during firmware download, validation, and flashing stages.</li><li>Documented the complete upgrade pipeline, including edge cases and rollback scenarios.</li><li>Collaborated with QA teams to align debugging and validation strategies.</li></ul><br><ul><p style="font-size: larger;"><strong>Impact:</strong></p><li>Reduced ambiguity in failure diagnosis through structured documentation.</li><li>Identified and analyzed critical failure points in OTA upgrade workflows, improving reliability and increasing success rates from ~90% toward a 95% target.</li></ul>',
         },
         {
-          text: 'Architected cross-OS firmware logging using custom RPCA commands across Yocto Linux and RTOS, adding <strong>20+ log points</strong> and reducing debugging time by <strong>50%</strong>.',
+          text: 'Implemented flash erase and write timing calculation routines to improve OTA firmware update reliability and reduce risk of data corruption.',
+          expandable: true,
+          detailId: 'flash-detail',
+          detail: '<ul><p style="font-size: larger;"><strong>Description:</strong></p><li>Worked on improving flash operation reliability by accurately modeling and calculating timing for erase and write cycles during firmware upgradess/</li></ul><br><ul><p style="font-size: larger;"><strong>What I Did:</strong></p><li>Developed functions to compute flash erase and write timings based on memory specifications.</li><li>Integrated timing logic into OTA upgrade flow to ensure safe and consistent flash operations.</li></ul><br><ul><p style="font-size: larger;"><strong>Impact:</strong></p><li>Improved log quality by providing more accurate and timely information about flash operations.</li><li>Flash timings helped with identifying and pinning down exactly which board was experiencing issues.</li></ul>',
+        },
+        {
+          text: ' Developed a single firmware upgrade package for a medical bed by modifying Bash scripts to generate an encrypted upgrade bundle, improving deployment reliability and security.',
+          expandable: true,
+          detailId: 'upgrade-package-detail',
+          detail: '<ul><p style="font-size: larger;"><strong>Description:</strong></p><li>Developed a unified and secure firmware packaging mechanism to streamline OTA deployment.</li></ul><br><ul><p style="font-size: larger;"><strong>What I Did:</strong></p><li>Modified and integrated existing Bash scripts to create a single encrypted firmware upgrade package.</li><li>Standardized the packaging format across multiple upgrade scenarios.</li></ul><br><ul><p style="font-size: larger;"><strong>Impact:</strong></p><li>Improved deployment reliability by reducing multi-file inconsistencies.</li><li>Enhanced firmware security through encryption of the upgrade bundle.</li></ul>',
+        },
+        {
+          text: 'Architected cross-OS firmware logging using custom RPCA commands across Yocto Linux and RTOS, adding <strong>50+ log points</strong> on medical bed to detect firmware failures and monitor upgrade workflows, reducing debugging time by <strong>75%</strong>.',
           expandable: true,
           detailId: 'logging-detail',
-          detail: 'Built a unified logging bridge that routes diagnostics from the RTOS core through custom RPCA commands to the Linux side, where they\u2019re timestamped and persisted. Covers boot, OTA, peripheral init, and error paths across both OSes.',
+          detail: '<ul><p style="font-size: larger;"><strong>Description:</strong></p><li>Designed and implemented a unified logging framework to improve observability across embedded Linux and RTOS subsystems in a network-connected medical device.</li></ul><br><ul><p style="font-size: larger;"><strong>What I Did:</strong></p><li>Added custom RPCA based command interfaces for cross-os communication.</li><li>Implemented logging hooks and added 50+ strategic log points across firmware upgrade flow and system states.</li><li>Built a centralized logging mechanism to correlate events across distributed components.</li></ul><br><ul><p style="font-size: larger;"><strong>Impact:</strong></p><li>Reduced debugging and root-cause analysis time by ~75%.</li><li>Enabled end-to-end traceability of firmware behavior across OS boundaries.</li><li>Improved reliability of OTA upgrade workflows through better failure visibility.</li></ul>',
         },
         {
-          text: 'Developed a single encrypted firmware upgrade package by modifying Bash scripts, improving deployment reliability and security.',
+          text: 'Performed development testing of embedded firmware on medical bed to validate new features, bug fixes, and upgrade flows.',
+          expandable: true,
+          detailId: 'testing-detail',
+          detail: '<ul><p style="font-size: larger;"><strong>Description:</strong></p><li>Performed hands-on validation of firmware features and upgrade flows for medical beds.</li></ul><br><ul><p style="font-size: larger;"><strong>What I Did:</strong></p><li>Tested firmware on medical bed hardware for feature validation and bug fixes.</li><li>Verified OTA upgrade scenarios including success, failure, and rollback.</li><li>Debugged issues using hardware debugging tools (iSystem IC5000, JTAG).</li></ul><br><ul><p style="font-size: larger;"><strong>Impact:</strong></p><li>Ensured robust and reliable firmware behavior across different deployment scenarios before release.</li><li>Improved confidence in OTA upgrade workflows.</li></ul>',
         },
         {
           text: 'Built and sourced Yocto-based SDK environments for ARM targets, enabling cross-compilation and embedded Linux development.',
+          expandable: true,
+          detailId: 'yocto-detail',
+          detail: '<ul><p style="font-size: larger;"><strong>Description:</strong></p><li>Set up and maintained cross-compilation environments for ARM-based embedded systems.</li></ul><br><ul><p style="font-size: larger;"><strong>What I Did:</strong></p><li>Built and configured SDKs using Yocto Project.</li><li>Assisted in integrating build outputs with firmware deployment pipelines.</li></ul><br><ul><p style="font-size: larger;"><strong>Impact:</strong></p><li>Streamlined development setup for embedded Linux targets.</li><li>Improved developer efficiency and build consistency.</li></ul>',
         },
+        {
+          text: '<strong>Reflection:</strong><em> This role has been an excellent opportunity to work on real-world embedded systems in the medical domain, applying and expanding my skills in firmware development, OTA updates, and cross-platform logging. I particularly enjoyed improving system reliability and observability in a complex, production-grade environment. The work also involved iterative development cycles and cross-functional collaboration, strengthening my ability to deliver software incrementally. Overall, it reinforced the importance of system-level thinking, structured debugging, and designing robust embedded solutions under real-world constraints.</em>',
+        }
       ],
     },
     {
