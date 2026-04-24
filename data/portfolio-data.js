@@ -119,10 +119,16 @@ const PORTFOLIO = {
       location: 'West Union, SC',
       bullets: [
         {
-          text: 'Designed an automated power cycling and failure monitoring system for NICs, enabling <strong>400+ hours</strong> of continuous testing and improving failure detection by <strong>150%</strong>.',
+          text: 'Designed and implemented an automated power cycling and failure monitoring system for Network Interface Cards (NIC), enabling <strong>400+ hours</strong> of continuous testing and improving failure detection by <strong>150%</strong>  (identifying 10+ failures, up from 4).',
+          expandable: true,
+          detailId: 'nic-detail',
+          detail: '<ul><p style="font-size: larger;"><strong>Description:</strong></p><li>Designed and implemented an automated testing system to evaluate reliability and detect failures in Network Interface Cards (NICs) under long-duration stress conditions.</li></ul><br><ul><p style="font-size: larger;"><strong>What I Did:</strong></p><li>Developed an automated power-cycling mechanism to simulate repeated boot and stress scenarios.</li><li>Built a Python-based framework to monitor Wi-Fi failures during Linux boot-up.</li><li>Enabled continuous overnight and long-duration testing workflows</li></ul><br><ul><p style="font-size: larger;"><strong>Impact:</strong></p><li>Achieved 400+ hours of continuous testing, significantly increasing the likelihood of detecting intermittent failures.</li><li>Improved failure detection by 150%, identifying 10+ failures compared to 4 with previous manual testing methods.</li></ul>',
         },
         {
-          text: 'Developed a Python library to monitor Wi-Fi failures during Linux boot-up, integrating logic analyzers and oscilloscopes, cutting log analysis time by <strong>98%</strong>.',
+          text: ' Developed a Python library and automation scripts to monitor Wi-Fi failures in NICs during Linux boot-up, integrating logic analyzers and oscilloscopes for debugging. Optimized log analysis with a post-processing script, cutting analysis time by <strong>98%</strong>.',
+          // expandable: true,
+          // detailId: 'wifi-detail',
+          // detail: '<ul><p style="font-size: larger;"><strong>Description:</strong></p><li>
         },
         {
           text: 'Addressed QSPI NAND firmware flashing failures by modifying code to bypass bad blocks for successful deployment.',
@@ -138,10 +144,16 @@ const PORTFOLIO = {
       academic: true,
       bullets: [
         {
-          text: 'Guided students through embedded systems assignments, debugging code on MSP432 and helping them reason through interrupts, timers, and peripheral drivers.',
+          text : '<strong><em> Worked as a Graduate Teaching Assistant for ECE 2564 Embedded Systems, a core course covering microcontroller programming, RTOS concepts, and hardware interfacing.</em></strong>',
+        },
+        {
+          text: 'Guided students through embedded systems assignments, debugging code on <strong>MSP432</strong> and helping them reason through interrupts, timers, and peripheral drivers.',
         },
         {
           text: 'Graded assignments and projects for <strong>78 students</strong>, providing constructive feedback on firmware design and coding practices.',
+        },
+        {
+          text: '<strong>Reflection:</strong><em> This teaching assistant role was a rewarding experience that allowed me to share my interest in embedded systems while supporting students in their learning process. Evaluating assignments also provided insight into common challenges in embedded programming, which has influenced how I approach problem-solving in my own work. Overall, it was fulfilling to contribute to the development of aspiring engineers while continuing to deepen my own knowledge.</em>',
         },
       ],
     },
